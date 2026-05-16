@@ -4,16 +4,6 @@ const callGemini = async (message, category, apiKey, history = []) => {
     const key = apiKey || process.env.GEMINI_API_KEY;
     if (!key) throw new Error('Gemini API key নেই');
 
-    const systemPrompts = {
-        general: "You are a helpful, friendly AI assistant.",
-        coding: "You are an expert programmer.",
-        writing: "You are a professional writer.",
-        analysis: "You are an analytical expert.",
-        creative: "You are a creative AI.",
-        math: "You are a math expert.",
-        image: "You are an image description expert."
-    };
-
     const contents = [];
     history.slice(-10).forEach(msg => {
         contents.push({
@@ -23,30 +13,19 @@ const callGemini = async (message, category, apiKey, history = []) => {
     });
     contents.push({ role: 'user', parts: [{ text: message }] });
 
-    const modelsToTry = [
-        'gemini-2.0-flash',
-        'gemini-1.5-flash',
-        'gemini-1.5-flash-latest',
-    ];
+    const response = await axios.post(
+        `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${key}`,
+        {
+            contents,
+            generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
+        },
+        { headers: { 'Content-Type': 'application/json' }, timeout: 30000 }
+    );
 
-    let lastError = null;
-    for (const modelName of modelsToTry) {
-        try {
-            const url = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${key}`;
-            const response = await axios.post(url, {
-                contents,
-                systemInstruction: { parts: [{ text: systemPrompts[category] || systemPrompts.general }] },
-                generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
-            }, { headers: { 'Content-Type': 'application/json' }, timeout: 30000 });
-
-            if (response.data?.candidates?.[0]?.content?.parts?.[0]?.text) {
-                return response.data.candidates[0].content.parts[0].text;
-            }
-        } catch (e) {
-            lastError = e;
-        }
+    if (response.data?.candidates?.[0]?.content?.parts?.[0]?.text) {
+        return response.data.candidates[0].content.parts[0].text;
     }
-    throw new Error(`Gemini error: ${lastError?.response?.data?.error?.message || lastError?.message}`);
+    throw new Error('Empty response');
 };
 
 const callGPT = async (message, category, apiKey, history = []) => {
