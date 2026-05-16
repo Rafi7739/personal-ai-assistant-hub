@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Personal AI Assistant Hub - Multi-model AI with voice input, chat history, PDF export">
+    <title>🤖 AI Assistant Hub</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loading-content">
+            <div class="ai-orb"><div class="orb-ring"></div><div class="orb-ring"></div><div class="orb-ring"></div><span class="orb-icon">🤖</span></div>
+            <h2>AI Assistant Hub</h2>
+            <div class="loading-bar"><div class="loading-bar-fill"></div></div>
+            <p>Initializing your AI companion...</p>
+        </div>
+    </div>
+
+    <div id="authPage" class="auth-page hidden">
+        <div id="loginForm" class="auth-container">
+            <div class="auth-card">
+                <div class="auth-header"><div class="auth-logo">🤖</div><h1>Welcome Back</h1><p>Sign in to your AI Assistant Hub</p></div>
+                <form id="loginFormEl" class="auth-form">
+                    <div class="form-group"><label><i class="fas fa-envelope"></i> Email</label><input type="email" id="loginEmail" placeholder="your@email.com" required></div>
+                    <div class="form-group"><label><i class="fas fa-lock"></i> Password</label><div class="password-wrapper"><input type="password" id="loginPassword" placeholder="Enter password" required><button type="button" class="toggle-pwd" onclick="togglePwd('loginPassword',this)"><i class="fas fa-eye"></i></button></div></div>
+                    <button type="submit" class="btn btn-primary btn-full"><i class="fas fa-sign-in-alt"></i> Sign In</button>
+                </form>
+                <div class="auth-footer"><p>Don't have an account? <a href="#" onclick="showRegister()">Create Account</a></p></div>
+            </div>
+        </div>
+        <div id="registerForm" class="auth-container hidden">
+            <div class="auth-card">
+                <div class="auth-header"><div class="auth-logo">🚀</div><h1>Create Account</h1><p>Join AI Assistant Hub</p></div>
+                <form id="registerFormEl" class="auth-form">
+                    <div class="form-group"><label><i class="fas fa-user"></i> Full Name</label><input type="text" id="regName" placeholder="Your full name" required></div>
+                    <div class="form-group"><label><i class="fas fa-envelope"></i> Email</label><input type="email" id="regEmail" placeholder="your@email.com" required></div>
+                    <div class="form-group"><label><i class="fas fa-lock"></i> Password</label><div class="password-wrapper"><input type="password" id="regPassword" placeholder="Min 6 characters" required minlength="6"><button type="button" class="toggle-pwd" onclick="togglePwd('regPassword',this)"><i class="fas fa-eye"></i></button></div></div>
+                    <div class="form-group"><label><i class="fas fa-lock"></i> Confirm</label><input type="password" id="regConfirm" placeholder="Confirm password" required></div>
+                    <button type="submit" class="btn btn-primary btn-full"><i class="fas fa-user-plus"></i> Create Account</button>
+                </form>
+                <div class="auth-footer"><p>Already have an account? <a href="#" onclick="showLogin()">Sign In</a></p></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="mainApp" class="main-app hidden">
+        <aside id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo"><span class="logo-icon">🤖</span><span class="logo-text">AI Hub</span></div>
+                <button class="sidebar-close" onclick="toggleSidebar()"><i class="fas fa-times"></i></button>
+            </div>
+            <button class="btn-new-chat" onclick="newChat()"><i class="fas fa-plus"></i><span>New Chat</span></button>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" onclick="nav('dashboard',this)" data-page="dashboard"><i class="fas fa-th-large"></i><span>Dashboard</span></a>
+                <a href="#" class="nav-item" onclick="nav('chat',this)" data-page="chat"><i class="fas fa-comments"></i><span>AI Chat</span></a>
+                <a href="#" class="nav-item" onclick="nav('tools',this)" data-page="tools"><i class="fas fa-tools"></i><span>AI Tools</span></a>
+                <a href="#" class="nav-item" onclick="nav('history',this)" data-page="history"><i class="fas fa-history"></i><span>History</span></a>
+                <a href="#" class="nav-item" onclick="nav('settings',this)" data-page="settings"><i class="fas fa-cog"></i><span>Settings</span></a>
+            </nav>
+            <div class="sidebar-chats"><h3><i class="fas fa-clock"></i> Recent Chats</h3><div id="recentList" class="chat-list"></div></div>
+            <div class="sidebar-footer">
+                <div class="user-info"><div class="user-avatar" id="sideAvatar">U</div><div class="user-details"><span class="user-name" id="sideName">User</span><span class="user-role">Free Plan</span></div><button class="btn-icon" onclick="logout()" title="Logout"><i class="fas fa-sign-out-alt"></i></button></div>
+            </div>
+        </aside>
+        <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+        <main class="main-content">
+            <header class="top-bar">
+                <button class="mobile-menu" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+                <h2 id="pageTitle">Dashboard</h2>
+                <div class="top-actions">
+                    <div class="search-box"><i class="fas fa-search"></i><input type="text" id="searchInput" placeholder="Search..." onkeyup="handleSearch(this.value)"></div>
+                    <button class="btn-icon" onclick="toggleTheme()" title="Theme"><i class="fas fa-moon" id="themeIcon"></i></button>
+                    <div class="user-menu"><button class="user-menu-btn" onclick="toggleUserMenu()"><div class="avatar-sm" id="topAvatar">U</div></button>
+                        <div id="userDrop" class="dropdown hidden"><div class="drop-header"><strong id="dropName">User</strong><small id="dropEmail">email</small></div><a href="#" onclick="nav('settings')"><i class="fas fa-cog"></i> Settings</a><hr><a href="#" onclick="logout()" class="text-danger"><i class="fas fa-sign-out-alt"></i> Logout</a></div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content-area">
+                <!-- DASHBOARD -->
+                <div id="pg-dashboard" class="page active">
+                    <div class="welcome-banner"><div class="welcome-text"><h1>Good <span id="greetTime">Morning</span>, <span id="greetName">User</span>! 👋</h1><p>Your AI assistant is ready. What would you like to do?</p></div><div class="welcome-art"><div class="ai-globe"><div class="gp"></div><div class="gp"></div><div class="gp"></div><div class="gp"></div><span>🤖</span></div></div></div>
+                    <div class="stats-grid">
+                        <div class="stat-card grd-purple"><div class="stat-icon"><i class="fas fa-comments"></i></div><div class="stat-info"><h3 id="stChats">0</h3><p>Total Chats</p></div></div>
+                        <div class="stat-card grd-blue"><div class="stat-icon"><i class="fas fa-paper-plane"></i></div><div class="stat-info"><h3 id="stMsgs">0</h3><p>Messages</p></div></div>
+                        <div class="stat-card grd-green"><div class="stat-icon"><i class="fas fa-bookmark"></i></div><div class="stat-info"><h3 id="stBooks">0</h3><p>Bookmarked</p></div></div>
+                        <div class="stat-card grd-orange"><div class="stat-icon"><i class="fas fa-bolt"></i></div><div class="stat-info"><h3 id="stAPI">0</h3><p>API Calls</p></div></div>
+                    </div>
+                    <div class="dash-grid">
+                        <div class="dash-card"><h3><i class="fas fa-zap"></i> Quick Actions</h3><div class="qa-grid">
+                            <button class="qa" onclick="quickAct('chat')"><span>💬</span><span>Chat</span></button>
+                            <button class="qa" onclick="quickAct('code-generator')"><span>💻</span><span>Code</span></button>
+                            <button class="qa" onclick="quickAct('email-writer')"><span>📧</span><span>Email</span></button>
+                            <button class="qa" onclick="quickAct('text-summarizer')"><span>📝</span><span>Summarize</span></button>
+                            <button class="qa" onclick="quickAct('grammar-checker')"><span>✅</span><span>Grammar</span></button>
+                            <button class="qa" onclick="quickAct('translator')"><span>🌐</span><span>Translate</span></button>
+                            <button class="qa" onclick="quickAct('image-generator')"><span>🖼️</span><span>Image</span></button>
+                            <button class="qa" onclick="quickAct('mood-analyzer')"><span>😊</span><span>Mood</span></button>
+                        </div></div>
+                        <div class="dash-card"><h3><i class="fas fa-clock"></i> Recent Activity</h3><div id="recentAct" class="activity-list"><div class="empty-mini"><span>🕐</span><p>No activity yet. Start chatting!</p></div></div></div>
+                    </div>
+                    <div class="dash-card usage-card"><h3><i class="fas fa-chart-bar"></i> API Usage</h3><div class="usage-wrap"><div class="usage-info"><span id="usedCount">0</span> / <span id="usedLimit">500</span> requests</div><div class="usage-bar"><div class="usage-fill" id="usageFill" style="width:0%"></div></div></div></div>
+                </div>
+
+                <!-- CHAT -->
+                <div id="pg-chat" class="page">
+                    <div class="chat-container">
+                        <div class="chat-toolbar">
+                            <div class="toolbar-left">
+                                <select id="aiModel" class="model-select" onchange="changeModel()">
+                                    <option value="built-in">🤖 Built-in AI</option>
+                                    <option value="gpt">🟢 GPT (OpenAI)</option>
+                                    <option value="gemini">🔵 Gemini (Google)</option>
+                                    <option value="claude">🟣 Claude (Anthropic)</option>
+                                </select>
+                                <select id="chatCat" class="cat-select">
+                                    <option value="general">💬 General</option>
+                                    <option value="coding">💻 Coding</option>
+                                    <option value="writing">✍️ Writing</option>
+                                    <option value="analysis">📊 Analysis</option>
+                                    <option value="creative">🎨 Creative</option>
+                                    <option value="math">🔢 Math</option>
+                                    <option value="image">🖼️ Image</option>
+                                </select>
+                            </div>
+                            <div class="toolbar-right">
+                                <button class="btn-icon" onclick="exportChatPDF()" title="Export PDF"><i class="fas fa-file-pdf"></i></button>
+                                <button class="btn-icon" onclick="bookmarkChat()" title="Bookmark"><i class="far fa-bookmark" id="bmIcon"></i></button>
+                                <button class="btn-icon" onclick="pinChat()" title="Pin"><i class="fas fa-thumbtack" id="pinIcon"></i></button>
+                                <button class="btn-icon" onclick="clearChat()" title="Delete"><i class="fas fa-trash-alt"></i></button>
+                            </div>
+                        </div>
+                        <div class="chat-messages" id="chatMsgs">
+                            <div class="welcome-chat"><div class="wc-icon">🤖</div><h2>How can I help you today?</h2><p>Choose an AI model above and start chatting!</p>
+                                <div class="chips">
+                                    <button class="chip" onclick="sendChip('Explain JavaScript closures with examples')">💻 JS Closures</button>
+                                    <button class="chip" onclick="sendChip('Write a professional email to my boss')">📧 Write Email</button>
+                                    <button class="chip" onclick="sendChip('Tell me a creative short story')">🎨 Story</button>
+                                    <button class="chip" onclick="sendChip('Calculate 245 * 18 + 72')">🔢 Math</button>
+                                    <button class="chip" onclick="sendChip('Generate an image of a sunset over mountains')">🖼️ Image</button>
+                                    <button class="chip" onclick="sendChip('What can you do? Show me all features')">🆘 Help</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chat-input-area">
+                            <div class="typing hidden" id="typingInd"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span>AI is thinking...</span></div>
+                            <form id="chatForm" class="chat-form">
+                                <div class="input-wrap">
+                                    <button type="button" class="voice-btn" id="voiceBtn" onclick="toggleVoice()" title="Voice Input"><i class="fas fa-microphone"></i></button>
+                                    <textarea id="chatInput" placeholder="Type your message... (Shift+Enter for new line)" rows="1" required></textarea>
+                                    <button type="submit" class="send-btn" id="sendBtn"><i class="fas fa-paper-plane"></i></button>
+                                </div>
+                                <div class="input-meta"><span class="char-ct"><span id="charCt">0</span>/2000</span><span id="voiceStatus" class="voice-status"></span><span class="hint">Shift+Enter new line | 🎤 Voice</span></div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TOOLS -->
+                <div id="pg-tools" class="page">
+                    <div class="tools-header"><h2>🛠️ AI Tools</h2><p>Powerful AI tools at your fingertips</p></div>
+                    <div class="tools-grid" id="toolsGrid"></div>
+                    <div id="toolModal" class="modal hidden">
+                        <div class="modal-content">
+                            <div class="modal-header"><h3 id="tmTitle">Tool</h3><button class="modal-close" onclick="closeTM()">&times;</button></div>
+                            <div class="modal-body">
+                                <div id="tmParams"></div>
+                                <div class="form-group"><label>Input:</label><textarea id="tmInput" rows="5" placeholder="Enter text..." class="tool-input"></textarea></div>
+                                <button class="btn btn-primary btn-full" onclick="runTool()" id="tmBtn"><i class="fas fa-magic"></i> Process</button>
+                                <div id="tmResult" class="tool-result hidden"><h4>📋 Result:</h4><div id="tmResultContent" class="result-box"></div><div class="result-actions"><button class="btn btn-secondary" onclick="copyResult()"><i class="fas fa-copy"></i> Copy</button></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- HISTORY -->
+                <div id="pg-history" class="page">
+                    <div class="hist-header">
+                        <h2><i class="fas fa-history"></i> Chat History</h2>
+                        <div class="hist-filters">
+                            <select id="histFilter" onchange="loadHistory()"><option value="">All</option><option value="general">💬 General</option><option value="coding">💻 Coding</option><option value="writing">✍️ Writing</option><option value="analysis">📊 Analysis</option><option value="creative">🎨 Creative</option><option value="math">🔢 Math</option><option value="image">🖼️ Image</option></select>
+                            <input type="text" id="histSearch" placeholder="Search chats..." onkeyup="loadHistory()">
+                        </div>
+                    </div>
+                    <div id="histList" class="hist-list"><div class="empty-state"><span>📭</span><h3>No history yet</h3><p>Start chatting!</p><button class="btn btn-primary" onclick="nav('chat')"><i class="fas fa-plus"></i> New Chat</button></div></div>
+                </div>
+
+                <!-- SETTINGS -->
+                <div id="pg-settings" class="page">
+                    <div class="settings-wrap">
+                        <h2><i class="fas fa-cog"></i> Settings</h2>
+                        <div class="set-section"><h3><i class="fas fa-user"></i> Profile</h3><div class="set-card">
+                            <div class="form-group"><label>Name</label><input type="text" id="setName"></div>
+                            <div class="form-group"><label>Email</label><input type="email" id="setEmail" disabled></div>
+                            <button class="btn btn-primary" onclick="saveProfile()"><i class="fas fa-save"></i> Save</button>
+                        </div></div>
+                        <div class="set-section"><h3><i class="fas fa-robot"></i> AI Model</h3><div class="set-card">
+                            <div class="form-group"><label>Default Model</label><select id="setModel"><option value="built-in">🤖 Built-in AI</option><option value="gpt">🟢 GPT</option><option value="gemini">🔵 Gemini</option><option value="claude">🟣 Claude</option></select></div>
+                            <div class="form-group"><label>OpenAI API Key</label><input type="password" id="setOpenAI" placeholder="sk-..."></div>
+                            <div class="form-group"><label>Gemini API Key</label><input type="password" id="setGemini" placeholder="AIza..."></div>
+                            <div class="form-group"><label>Claude API Key</label><input type="password" id="setClaude" placeholder="sk-ant-..."></div>
+                            <button class="btn btn-primary" onclick="saveAPIKeys()"><i class="fas fa-key"></i> Save Keys</button>
+                        </div></div>
+                        <div class="set-section"><h3><i class="fas fa-palette"></i> Appearance</h3><div class="set-card">
+                            <div class="set-row"><div><strong>Dark Mode</strong><p>Toggle theme</p></div><label class="switch"><input type="checkbox" id="darkToggle" checked onchange="toggleTheme()"><span class="slider"></span></label></div>
+                        </div></div>
+                        <div class="set-section"><h3><i class="fas fa-lock"></i> Security</h3><div class="set-card">
+                            <div class="form-group"><label>Current Password</label><input type="password" id="curPwd"></div>
+                            <div class="form-group"><label>New Password</label><input type="password" id="newPwd" minlength="6"></div>
+                            <button class="btn btn-primary" onclick="changePwd()"><i class="fas fa-key"></i> Change Password</button>
+                        </div></div>
+                        <div class="set-section danger"><h3><i class="fas fa-exclamation-triangle"></i> Account</h3><div class="set-card"><button class="btn btn-danger" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button></div></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="toasts" class="toast-container"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.0/marked.min.js"></script>
+    <script src="/js/app.js"></script>
+</body>
+</html>
